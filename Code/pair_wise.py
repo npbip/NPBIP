@@ -123,21 +123,27 @@ def compute_sid(args):
         'train_protein': train_id,
         'similarity_score': sid
     }
+
     
 def main():
     parser = argparse.ArgumentParser(description="calculate similarity scores between proteins")
     parser.add_argument("nucleic_acid_type", help="RNA or DNA")
-    parser.add_argument("--query_faste_domains", default="", help="Path to input query protein FASTA domain files")
+    parser.add_argument("run_id", type=str, help="run ID for saving/loading files")
+    parser.add_argument("--query_fasta_domain")
+    parser.add_argument("--train_fasta_domain")
     args = parser.parse_args()
+
+    run_id = args.run_id
 
     #fasta_file = args.fasta
     nuc_type = args.nucleic_acid_type.upper()
-    query_fasta_domain = f"output/{nuc_type}_domains_plus_15.fasta"
+    query_fasta_domain = os.path.join("output", run_id, f"{nuc_type}_domains_plus_15.fasta")
+    
 
     if nuc_type == "RNA":
-        train_fasta_domain = "DATA/FASTA/Train_RBPs_domains_plus_15.fasta"
+        train_fasta_domain = "Train_data/Train_RBPs_domains_plus_15.fasta"
     elif nuc_type == "DNA":
-        train_fasta_domain = "DATA/FASTA/Train_DBPs_domains_plus_15.fasta"
+        train_fasta_domain = "Train_data/Train_DBPs_domains_plus_15.fasta"
     else:
         print("error must specified nucleic_acid_type DNA or RNA")
         sys.exit(1) 
@@ -167,7 +173,7 @@ def main():
 
 
     # Step 4: Save the results to a CSV file.
-    pairwise_output_path = os.path.join('output', f"{nuc_type}_pairwise_AA_SID_results.csv")
+    pairwise_output_path = os.path.join('output', run_id ,f"{nuc_type}_pairwise_AA_SID_results.csv")
     with open(pairwise_output_path, 'w', newline='') as csvfile:
         fieldnames = ['query_protein', 'train_protein', 'similarity_score']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)

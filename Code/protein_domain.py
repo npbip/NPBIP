@@ -155,14 +155,17 @@ def main():
     parser = argparse.ArgumentParser(description="Find RNA/DNA-binding domains using HMMER.")
     parser.add_argument("fasta", help="Path to input protein FASTA file")
     parser.add_argument("nucleic_acid_type", help="RNA/DNA")
+    parser.add_argument("run_id", type=str, help="run ID for saving/loading files")
     args = parser.parse_args()
 
-    os.makedirs("output", exist_ok=True)
+    run_id = args.run_id
+    os.makedirs(os.path.join("output", run_id), exist_ok=True)
+
     fasta_file = args.fasta
     nuc_type = args.nucleic_acid_type
 
-    domtblout_path = os.path.join("output", F"hmmscan_results_{nuc_type}.tbl")
-    fasta_out_path = os.path.join("output", F"{nuc_type}_domains_plus_15.fasta") 
+    domtblout_path = os.path.join("output", run_id, f"hmmscan_results_{nuc_type}.tbl")
+    fasta_out_path = os.path.join("output", run_id, f"{nuc_type}_domains_plus_15.fasta") 
 
     protein_sequences = read_fasta(fasta_file)
     # Print out the first sequence as an example
@@ -176,9 +179,9 @@ def main():
         sys.exit(1)
 
     if nuc_type == "RNA":
-        hmm_db = "/home/noam/programs/combined_rna_binding.hmm"
+        hmm_db = "HMM/combined_rna_binding.hmm"
     elif nuc_type == "DNA":
-        hmm_db = "/home/noam/programs/combined_dna_binding.hmm"
+        hmm_db = "HMM/combined_dna_binding.hmm"
     else:
         print("error must specified nucleic_acid_type DNA or RNA")
         sys.exit(1)        

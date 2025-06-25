@@ -87,20 +87,23 @@ def final_prediction(aa_sid_dict, new_seq_prediction, train_protein_order, k=20,
         res[protein_test] = final_predictions_for_probes
 
     return res
+    
 
 def main():
     parser = argparse.ArgumentParser(description="Final step predict score for query protein and query nucleic acid seq, based on weighted average of the predicted binding intensities by the calculated similarities")
     
     parser.add_argument("nucleic_acid_type", help="RNA or DNA")
     parser.add_argument("query_nuc_fasta", help="")
+    parser.add_argument("run_id", type=str, help="run ID for saving/loading files")
     args = parser.parse_args()
+    run_id = args.run_id
 
  
     nuc_type = args.nucleic_acid_type.upper()
     if nuc_type == "RNA":
-        train_protein_fasta = "DATA/FASTA/RBPs_train_protein.fa" 
+        train_protein_fasta = "Train_data/RBPs_train_protein.fa" 
     elif nuc_type == "DNA":
-        train_protein_fasta = "DATA/FASTA/multidbp_order_fasta_seq_562.fasta"
+        train_protein_fasta = "Train_data/multidbp_order_fasta_seq_562.fasta"
     else:
         print("error must specified nucleic_acid_type DNA or RNA")
         sys.exit(1)
@@ -110,9 +113,10 @@ def main():
     train_protein_ids = get_fasta_headers(train_protein_fasta)
     print(len(train_protein_ids))
 
-    new_seq_prediction = np.load(f"output/{nuc_type}_final_new_seq_predictions.npy")
+    new_seq_prediction = np.load(os.path.join('output', run_id ,f"{nuc_type}_final_new_seq_predictions.npy"))
+    
     print(new_seq_prediction.shape)
-    similarity_path = f"output/{nuc_type}_pairwise_AA_SID_results.csv"
+    similarity_path = os.path.join('output', run_id ,f"{nuc_type}_pairwise_AA_SID_results.csv")
     pairwise_dict = similarity_score_sort(similarity_path)
 
     res = final_prediction(pairwise_dict, new_seq_prediction, train_protein_ids)
@@ -123,7 +127,7 @@ def main():
             final_output.append((query_prot, query_nuc_ids[i], score))
 
     # --- Now, save final_output to a CSV file ---
-    csv_file_path = f"output/{nuc_type}_NewProNewSeq_scores.csv"
+    csv_file_path = os.path.join('output', run_id ,f"{nuc_type}_NewProNewSeq_scores.csv")
     csv_headers = ["Protein_ID", "Nucleotide_ID", "Score"]
 
     with open(csv_file_path, 'w', newline='') as csvfile:

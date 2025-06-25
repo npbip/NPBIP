@@ -3,14 +3,43 @@ import subprocess
 import sys # Import sys for printing to stderr and exiting
 import os
 
+
+
+def get_unique_run_id(base_dir, run_id):
+
+    full_path = os.path.join(base_dir, run_id)
+    if not os.path.exists(full_path):
+        return run_id
+
+    i = 1
+    while True:
+        new_run_id = f"{run_id}_{i}"
+        new_path = os.path.join(base_dir, new_run_id)
+        if not os.path.exists(new_path):
+            return new_run_id
+        i += 1
+
 def main():
 
     parser = argparse.ArgumentParser(description="Full pipeline of NPBIP!")
     parser.add_argument("nucleic_acid_type", help="RNA or DNA")
     parser.add_argument("protein_query_fasta", help="Path to query protein FASTA file")
     parser.add_argument("nuc_query_fasta", help="Path to query nucleic-acid FASTA file")
+    parser.add_argument("--run_id", type=str, default=None, help="Optional run ID for saving output files")
+
     
     args = parser.parse_args()
+
+    if args.run_id is None:
+        run_id = "output"
+    else:
+        run_id = args.run_id
+    run_id = get_unique_run_id("output", run_id)
+
+
+    output_dir = os.path.join("output", run_id)
+    os.makedirs(output_dir, exist_ok=True)
+    
 
     protein_query_fasta = args.protein_query_fasta
     nuc_query_fasta = args.nuc_query_fasta
@@ -28,13 +57,13 @@ def main():
         sys.exit(1)
 
     #protein domain command
-    command_domain = ["python", "protein_domain.py", protein_query_fasta, nuc_type]
+    command_domain = ["python", "Code/protein_domain.py", protein_query_fasta, nuc_type, run_id]
     #pairwise command
-    command_pairwise = ["python", "pair_wise.py", nuc_type]
+    command_pairwise = ["python", "Code/pair_wise.py", nuc_type, run_id]
     #NewSeq prediction command
-    command_new_seq_prediction = ["python", "NewSeq_prediction.py", nuc_type, nuc_query_fasta]
+    command_new_seq_prediction = ["python", "Code/NewSeq_prediction.py", nuc_type, nuc_query_fasta, run_id]
     #NewProNewSeq_final_prediction
-    command_new_pro_new_seq_prediction = ["python", "NewProNewSeq_final_prediction.py", nuc_type, nuc_query_fasta]
+    command_new_pro_new_seq_prediction = ["python", "Code/NewProNewSeq_final_prediction.py", nuc_type, nuc_query_fasta, run_id]
 
     print(f"Run command: {' '.join(command_domain)}", file=sys.stderr) # Good for debugging
     try:

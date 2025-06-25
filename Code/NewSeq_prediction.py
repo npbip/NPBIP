@@ -176,23 +176,25 @@ def encode_batch(nuc_type: str, rna_sequences: List[str], target_seq_length: int
 
     return batch_tensor
 
-
+    
 def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     parser = argparse.ArgumentParser(description="Predicts binding intensities of nucleic acids seq to training proteins")
     parser.add_argument("nucleic_acid_type", help="RNA or DNA")
-    parser.add_argument("fasta", help="fasta file of the nucleic acids sequences")
+    parser.add_argument("nucleic_acid_fasta", help="fasta file of the nucleic acids sequences")
+    parser.add_argument("run_id", type=str, help="run ID for saving/loading files")
     args = parser.parse_args()
+    run_id = args.run_id
 
     # Create the model
     nuc_type = args.nucleic_acid_type.upper()
     if nuc_type == "RNA":
-        weights_PATH = "DATA/NewSeqModels/MultiRBP.pt"
+        weights_PATH = "NewSeqModels/MultiRBP.pt"
         model = MultiModel(params_dict, input_dim=4, output_dim=244).to(device)
         model.load_state_dict(torch.load(weights_PATH, map_location=device))
 
     elif nuc_type == "DNA":
-        weights_PATH = "DATA/NewSeqModels/MultiDBP.pt"
+        weights_PATH = "NewSeqModels/MultiDBP.pt"
         model = MultiModel(params_dict, input_dim=4, output_dim=562).to(device)
         model.load_state_dict(torch.load(weights_PATH, map_location=device))
     else:
@@ -201,7 +203,7 @@ def main():
     model.eval()
 
     # query sequences
-    fasta_file = args.fasta
+    fasta_file = args.nucleic_acid_fasta
     query_sequences = read_fasta(fasta_file)
     batch_size = 2048
     batch_indices = range(0, len(query_sequences), batch_size)
@@ -225,7 +227,7 @@ def main():
     print(f"\nFinished. Final predictions tensor shape: {final_predictions_tensor.shape}")
 
     # output path
-    output_npy_file = f"output/{nuc_type}_final_new_seq_predictions.npy"
+    output_npy_file = os.path.join('output', run_id ,f"{nuc_type}_final_new_seq_predictions.npy")
     final_predictions_numpy = final_predictions_tensor.cpu().numpy()
     np.save(output_npy_file, final_predictions_numpy)
     print(f"Predictions saved as NumPy binary to: {output_npy_file}")
