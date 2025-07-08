@@ -86,8 +86,15 @@ The `main_NPBIP.py` script orchestrates the full prediction pipeline by calling 
 4. `NewProNewSeq_final_prediction.py`  
    Computes a weighted average of the predictions based on the similarity scores to generate the final output.
 
-
 ---
+
+### 🧠 Training MultiDBP Model
+To train a MultiDBP model, use the following script:
+
+```bash
+python Code/train_multidbp.py <pbm_data>
+
+```
 
 ## ✨ License
 
